@@ -13,6 +13,7 @@
     "@deities/hephaestus": "workspace:*",
     "@nkzw/immutable-map": "^1.2.2",
     "array-shuffle": "^3.0.0",
+    "benchmarkify": "^4.0.0",
     "fastpriorityqueue": "^0.7.5",
     "skmeans": "^0.11.3"
   },

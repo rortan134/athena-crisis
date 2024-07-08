@@ -97,6 +97,76 @@ function calculateRadius(
   start: Vector,
   radius: number,
   {
+    getCost,
+    getResourceValue,
+    getTransitionCost,
+    isAccessible,
+  }: RadiusConfiguration = MoveConfiguration,
+): Map<Vector, RadiusItem> {
+  const { info } = unit;
+  const closed = new Array(map.size.width * map.size.height);
+  const paths = new Map<Vector, RadiusItem>();
+  const queue = new FastPriorityQueue<RadiusItem>((a, b) => a.cost < b.cost);
+  queue.add(RadiusItem(start));
+
+  while (!queue.isEmpty()) {
+    const { cost: parentCost, vector } = queue.poll()!;
+    const index = map.getTileIndex(vector);
+    if (closed[index]) {
+      continue;
+    }
+    closed[index] = true;
+
+    const vectors = vector.adjacent();
+    for (let i = 0; i < vectors.length; i++) {
+      const currentVector = vectors[i];
+      if (!map.contains(currentVector)) {
+        continue;
+      }
+      const currentIndex = map.getTileIndex(currentVector);
+      if (closed[currentIndex]) {
+        continue;
+      }
+      const cost = getCost(map, unit, currentVector);
+      if (cost < 0 || !isAccessibleBase(map, unit, currentVector)) {
+        closed[currentIndex] = true;
+        continue;
+      }
+      const nextCost =
+        parentCost +
+        cost +
+        getTransitionCost(
+          info,
+          map.getTileInfo(vector),
+          map.getTileInfo(currentVector),
+        );
+      const previousPath = paths.get(currentVector);
+      if (
+        nextCost <= radius &&
+        (!previousPath || nextCost < previousPath.cost) &&
+        nextCost <= getResourceValue(unit)
+      ) {
+        const item = {
+          cost: nextCost,
+          parent: vector,
+          vector: currentVector,
+        };
+        paths.set(currentVector, item);
+        if (nextCost < radius) {
+          queue.add(item);
+        }
+      }
+    }
+  }
+  return paths;
+}
+
+function fastCalculateRadius(
+  map: MapData,
+  unit: Unit,
+  start: Vector,
+  radius: number,
+  {
     getResourceValue,
     getTransitionCost,
     isAccessible,
@@ -166,6 +236,21 @@ export function moveable(
   withStart = false,
 ): ReadonlyMap<Vector, RadiusItem> {
   const moveable = calculateRadius(map, unit, start, radius, configuration);
+  if (withStart) {
+    moveable.set(start, RadiusItem(start));
+  }
+  return moveable;
+}
+
+export function fastMoveable(
+  map: MapData,
+  unit: Unit,
+  start: Vector,
+  radius: number = unit.info.getRadiusFor(map.getPlayer(unit)),
+  configuration: RadiusConfiguration = MoveConfiguration,
+  withStart = false,
+): ReadonlyMap<Vector, RadiusItem> {
+  const moveable = fastCalculateRadius(map, unit, start, radius, configuration);
   if (withStart) {
     moveable.set(start, RadiusItem(start));
   }
