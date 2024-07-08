@@ -19,7 +19,7 @@ test('benchmark moveable radius', async () => {
   const benchmark = new Benchmark('benchmark moveable').printHeader();
   benchmark
     .createSuite('starting benchmark', { time: 10_000 })
-    .add('moveable', () => moveable(testMap, unitA, vecA, 1))
-    .add('fast moveable', () => fastMoveable(testMap, unitA, vecA, 1));
+    .add('moveable', () => moveable(testMap, unitA, vecA, 7))
+    .add('fast moveable', () => fastMoveable(testMap, unitA, vecA, 7));
   await benchmark.run();
 });
