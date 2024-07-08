@@ -5,7 +5,7 @@ import startMap from '../../hermes/map-fixtures/they-are-close-to-home.tsx';
 import { fastMoveable, moveable } from '../Radius.tsx';
 import vec from './../map/vec.tsx';
 
-test('benchmark moveable radius', () => {
+test('benchmark moveable radius', async () => {
   const testMap = startMap.copy({
     units: startMap.units.delete(vec(11, 8)),
   });
@@ -21,5 +21,5 @@ test('benchmark moveable radius', () => {
     .createSuite('starting benchmark', { time: 10_000 })
     .add('moveable', () => moveable(testMap, unitA, vecA, 1))
     .add('fast moveable', () => fastMoveable(testMap, unitA, vecA, 1));
-  benchmark.run();
+  await benchmark.run();
 });
